@@ -1,0 +1,10 @@
+system:
+  x_application_id: "process-benchmarks"
+  app_country_code: "dev"
+  http_port: "8080"
+  base_path: "/api"
+
+rest_client:
+  default_timeout: "30000"
+  hosts:
+    dev: "http://localhost:8081"

@@ -1,0 +1,82 @@
+plugins {
+  id 'org.jetbrains.kotlin.jvm' version '1.3.20'
+  id 'application'
+  id 'com.github.johnrengelman.shadow' version '5.0.0'
+}
+
+group = 'com.ragnaroft'
+version = '1.0.0-SNAPSHOT'
+
+repositories {
+  mavenCentral()
+  jcenter()
+}
+
+ext {
+  kotlinVersion = '1.3.20'
+  vertxVersion = '3.8.5'
+  junitJupiterEngineVersion = '5.4.0'
+}
+
+application {
+  mainClassName = 'io.vertx.core.Launcher'
+}
+
+
+def mainVerticleName = 'com.ragnaroft.process_benchmarks.MainVerticle'
+def watchForChange = 'src/**/*'
+def doOnChange = './gradlew classes'
+
+dependencies {
+  // Vert.X
+  implementation "io.vertx:vertx-config:$vertxVersion"
+  implementation "io.vertx:vertx-config-yaml:$vertxVersion"
+  implementation "io.vertx:vertx-web-client:$vertxVersion"
+  implementation "io.vertx:vertx-rx-java2:$vertxVersion"
+  implementation "io.vertx:vertx-web:$vertxVersion"
+  implementation "io.vertx:vertx-lang-kotlin:$vertxVersion"
+
+  // IoC
+  implementation "com.google.inject:guice:4.2.2"
+
+  // Serializer
+  implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+"
+  implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.+"
+
+  // Misc
+  implementation "ch.qos.logback:logback-classic:1.2.3"
+
+  testImplementation "io.vertx:vertx-junit5:$vertxVersion"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitJupiterEngineVersion"
+  testImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterEngineVersion"
+}
+
+compileKotlin {
+  kotlinOptions.jvmTarget = '1.8'
+}
+
+compileTestKotlin {
+  kotlinOptions.jvmTarget = '1.8'
+}
+
+
+shadowJar {
+  classifier = 'shadow'
+  manifest {
+    attributes 'Main-Verticle': mainVerticleName
+  }
+  mergeServiceFiles {
+    include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
+  }
+}
+
+test {
+  useJUnitPlatform()
+  testLogging {
+    events 'PASSED', 'FAILED', 'SKIPPED'
+  }
+}
+
+run {
+  args = ['run', mainVerticleName, "--redeploy=$watchForChange", "--launcher-class=$mainClassName", "--on-redeploy=$doOnChange"]
+}
